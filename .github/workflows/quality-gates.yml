@@ -7,7 +7,7 @@ on:
 
 jobs:
   architecture-agent:
-    name: Agent 1 — Architecture & dependency check
+    name: Agent 1 — Architecture & production build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -19,7 +19,7 @@ jobs:
       - run: npm run build
 
   ui-agent:
-    name: Agent 2 — UI/static quality check
+    name: Agent 2 — UI, Three.js & asset check
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -27,12 +27,28 @@ jobs:
         with:
           node-version: 20
       - run: test -f index.html
-      - run: grep -q 'three' index.html
+      - run: test -f logo-primary.b64
+      - run: test -f logo-badge.b64
+      - run: grep -q "from 'three'" index.html
       - run: grep -q 'viewport' index.html
+      - run: grep -q 'web3forms.com/submit' index.html
       - run: grep -q 'WhatsApp' index.html
 
+  seo-agent:
+    name: Agent 3 — SEO & discoverability check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: grep -q 'TSR Homes' index.html
+      - run: grep -q 'True Star Realty Homes' index.html
+      - run: grep -q 'True Town Villa' index.html
+      - run: grep -q 'application/ld+json' index.html
+      - run: grep -q 'canonical' index.html
+      - run: test -f robots.txt
+      - run: test -f sitemap.xml
+
   security-agent:
-    name: Agent 3 — Security & deploy hygiene check
+    name: Agent 4 — Security & deploy hygiene
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -40,8 +56,8 @@ jobs:
       - run: test -f vercel.json
 
   final-review:
-    name: Agent 4 — Cross-check all gates
-    needs: [architecture-agent, ui-agent, security-agent]
+    name: Agent 5 — Final cross-check
+    needs: [architecture-agent, ui-agent, seo-agent, security-agent]
     runs-on: ubuntu-latest
     steps:
       - run: echo "All TSR Homes quality gates passed. Ready for Vercel deployment."
