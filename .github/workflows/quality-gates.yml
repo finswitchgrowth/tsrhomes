@@ -1,4 +1,4 @@
-name: TSR Homes Quality Gates
+name: TSR Homes Multi-Agent Quality Gates
 on:
   push:
     branches: [main]
@@ -18,8 +18,8 @@ jobs:
       - run: npm install
       - run: npm run build
 
-  ui-agent:
-    name: Agent 2 — UI, Three.js & asset check
+  three-ui-agent:
+    name: Agent 2 — Three.js / UI / assets
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -29,13 +29,14 @@ jobs:
       - run: test -f index.html
       - run: test -f logo-primary.b64
       - run: test -f logo-badge.b64
-      - run: grep -q "from 'three'" index.html
-      - run: grep -q 'viewport' index.html
-      - run: grep -q 'web3forms.com/submit' index.html
-      - run: grep -q 'WhatsApp' index.html
+      - run: test -f src/tsr-engine.js
+      - run: grep -q "from 'three'" src/tsr-engine.js
+      - run: grep -q 'three' package.json
+      - run: grep -q 'WebGLRenderer' src/tsr-engine.js
+      - run: grep -q 'web3forms.com/submit' src/tsr-engine.js
 
   seo-agent:
-    name: Agent 3 — SEO & discoverability check
+    name: Agent 3 — SEO / discoverability
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -48,16 +49,25 @@ jobs:
       - run: test -f sitemap.xml
 
   security-agent:
-    name: Agent 4 — Security & deploy hygiene
+    name: Agent 4 — Security / deployment hygiene
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - run: '! grep -RniE "(sk-|ghp_|github_pat_|BEGIN PRIVATE KEY|password=|api_key=)" --exclude-dir=.git .'
-      - run: test -f vercel.json
+      - run: test ! -f vercel.json
+
+  conversion-agent:
+    name: Agent 5 — Lead conversion / fallback
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: grep -q 'TSR_WEB3FORMS_KEY' index.html
+      - run: grep -q 'wa.me' src/tsr-engine.js
+      - run: grep -q 'Smart Match' index.html
 
   final-review:
-    name: Agent 5 — Final cross-check
-    needs: [architecture-agent, ui-agent, seo-agent, security-agent]
+    name: Agent 6 — Final cross-check
+    needs: [architecture-agent, three-ui-agent, seo-agent, security-agent, conversion-agent]
     runs-on: ubuntu-latest
     steps:
       - run: echo "All TSR Homes quality gates passed. Ready for Vercel deployment."
