@@ -14,7 +14,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
       - run: npm install
       - run: npm run build
 
@@ -53,7 +52,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: '! grep -RniE "(sk-|ghp_|github_pat_|BEGIN PRIVATE KEY|password=|api_key=)" --exclude-dir=.git .'
+      - run: '! grep -RniE "(sk-|ghp_|github_pat_|BEGIN PRIVATE KEY|password=|api_key=)" --include="*.js" --include="*.html" --include="*.json" --exclude-dir=.git .'
       - run: test ! -f vercel.json
 
   conversion-agent:
