@@ -1,0 +1,47 @@
+name: TSR Homes Quality Gates
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  architecture-agent:
+    name: Agent 1 — Architecture & dependency check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm install
+      - run: npm run build
+
+  ui-agent:
+    name: Agent 2 — UI/static quality check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: test -f index.html
+      - run: grep -q 'three' index.html
+      - run: grep -q 'viewport' index.html
+      - run: grep -q 'WhatsApp' index.html
+
+  security-agent:
+    name: Agent 3 — Security & deploy hygiene check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: '! grep -RniE "(sk-|ghp_|github_pat_|BEGIN PRIVATE KEY|password=|api_key=)" --exclude-dir=.git .'
+      - run: test -f vercel.json
+
+  final-review:
+    name: Agent 4 — Cross-check all gates
+    needs: [architecture-agent, ui-agent, security-agent]
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "All TSR Homes quality gates passed. Ready for Vercel deployment."
